@@ -1,7 +1,13 @@
 *.out
 *.o
-
 .vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+*.vsix
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
