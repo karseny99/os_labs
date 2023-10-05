@@ -5,4 +5,4 @@
 программе подается K, какой сейчас тур, сколько очков суммарно у каждого из игроков и 
 количество экспериментов, которые должна произвести программа*
 
-[Отчет](https://docs.google.com/document/d/1lk5BpXApk1U3Zfm_ktzUnT6ywGgJDKdR/edit)
+[Отчет](https://docs.google.com/document/d/1lk5BpXApk1U3Zfm_ktzUnT6ywGgJDKdR/edit?usp=sharing&ouid=104732197431944380677&rtpof=true&sd=true)
