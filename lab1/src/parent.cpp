@@ -77,6 +77,4 @@ int main() {
 
         close(pipe_fd[0]);
     }
-
-
 }
