@@ -61,8 +61,11 @@ int main(int argc, char** argv) {
     if(argc != 2) {
         return -1;
     }
-
+    
     int threadCount = stoi(argv[1]);
+    if(threadCount > exp_num) {
+        threadCount = exp_num;
+    }
     pthread_mutex_init(&mutex, NULL);
     pthread_t tid[threadCount];
     pdata pdata[threadCount];
