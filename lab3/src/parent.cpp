@@ -18,6 +18,8 @@ using namespace std;
 
 #define MAX_PATH_SIZE 64
 
+const int MAX_NUM_LEN = 40 * sizeof(char);
+
 
 int create_process() {
     pid_t pid = fork();
@@ -31,10 +33,11 @@ int create_process() {
 
 
 int main() {
+    char str_file_path[] = "1.txt";
 
-    char str_file_path[MAX_PATH_SIZE];
-    cout << "Enter file path:" << endl;
-    cin >> str_file_path;
+    // char str_file_path[MAX_PATH_SIZE];
+    // cout << "Enter file path:" << endl;
+    // cin >> str_file_path;
 
     int input_file = open(str_file_path, O_RDONLY);
     if(input_file == -1) {
@@ -60,13 +63,18 @@ int main() {
     int fd = shm_open(shared_file.c_str(), O_RDWR | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
     if(fd < 0) {
-        perror("Failed to open file");
+        perror("Failed to open shm in parent");
         exit(-1);
     }
 
-    ftruncate(fd, sizeof(int));
+    ftruncate(fd, MAX_NUM_LEN);
 
-    int* mmap_pipe = static_cast<int*>(mmap(NULL, sizeof(int), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0));
+    caddr_t mmap_pipe = static_cast<caddr_t>(mmap(NULL,
+                                               MAX_NUM_LEN,
+                                               PROT_READ | PROT_WRITE,
+                                               MAP_SHARED,
+                                               fd,
+                                               0));    
     if(mmap_pipe == MAP_FAILED){
         perror("Mapping Failed\n");
         exit(-1);
@@ -81,7 +89,7 @@ int main() {
             exit(-1);
         }
     
-        if(execl("./child", "./child", sem2.c_str(), sem1.c_str(), shared_file.c_str(), NULL) == -1) { // exec child process
+        if(execl("child", "child", sem2.c_str(), sem1.c_str(), shared_file.c_str(), NULL) == -1) { // exec child process
             perror("can't exec child process");
             exit(-1);
         }
@@ -89,26 +97,31 @@ int main() {
 
     } else {  // Parent process (readable) fd(0)
 
-        close(input_file);
 
-
-        while(mmap_pipe[0] == -1) { // getting numbers from pipe
+        while(1) { // getting numbers from pipe
             sem_post(she);
             // cout << GREEN_COLOR << "Waiting for child" << endl;
             // mmap_pipe[0] = -1;
             sem_wait(sme);
-            cout << GREEN_COLOR << mmap_pipe[0] << endl;
+
+            if(static_cast<int>(mmap_pipe[0]) == -1) {
+                break;
+            }
+
+            char tmp[MAX_NUM_LEN];
+            strcpy(tmp, mmap_pipe + 1);
+            cout << GREEN_COLOR << mmap_pipe + 1 << endl;
         }
 
     }
-
 
     sem_close(sme);
     sem_close(she);
 
     shm_unlink(shared_file.c_str());
-    close(fd);
 
-    munmap(mmap_pipe, sizeof(int));
+    munmap(mmap_pipe, MAX_NUM_LEN);
+    close(fd);
     close(input_file);
+
 }
