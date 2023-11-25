@@ -12,5 +12,4 @@ add_library(der SHARED ${DER_LIB})
 add_library(pi SHARED ${PI_LIB})
 
 add_executable(main src/main.cpp)
-
-# target_link_libraries(main pi der)
+add_executable(main_linked src/main_linked.cpp src/der.cpp src/pi.cpp)
