@@ -1,6 +1,7 @@
 *.out
 *.o
 *.a
+*.so
 *.json
 *.vscode/*
 !.vscode/settings.json
