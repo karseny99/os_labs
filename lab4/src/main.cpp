@@ -13,8 +13,8 @@ vector<string> der_func = {"Der1", "Der2"};
 
 int main() {
     cout.precision(16);
-    void* pi_lib = dlopen(path1, RTLD_LAZY);
-    void* der_lib = dlopen(path2, RTLD_LAZY);
+    void* pi_lib = dlopen(path1, RTLD_NOW);
+    void* der_lib = dlopen(path2, RTLD_NOW);
 
     if (!pi_lib) {
         cerr << "Cannot open library: " << dlerror() << '\n';
