@@ -1,10 +1,13 @@
-cmake_minimum_required(VERSION 3.10)
-project(os_lab57)
+cmake_minimum_required(VERSION 3.15)
 
+project(lab5-7)
 add_compile_options(-pedantic -Wall -g)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-add_executable(main src/main.cpp)
+add_executable(main src/main.cpp src/compute_node.cpp src/control_node.cpp src/zmq_funcs.cpp)
+add_executable(server src/server.cpp src/compute_node.cpp src/control_node.cpp src/zmq_funcs.cpp)
+
+target_link_libraries(main zmq)
+target_link_libraries(server zmq)
