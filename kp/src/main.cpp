@@ -6,6 +6,11 @@
 using namespace std;
 
 
+/*
+g++ -std=c++20 src/main.cpp -ljsoncpp -o main && ./main < data.json
+*/
+
+
 int main(int argc, char** argv) {
 
     cout << "====================" << endl;;
