@@ -6,9 +6,29 @@
 using namespace std;
 
 
-int main() {
+int main(int argc, char** argv) {
+
+    cout << "====================" << endl;;
+    cout << "Every node after launching goes sleep for it's id_number seconds" << endl;
+
     Json::Value data;
-
+    cin >> data;
     JsonParser d(data);
+    cout << "====================" << endl;;
+    cout << "Graph of given json file:" << endl;
+    cout << "====================" << endl;;
+    d.print_graph();
+    cout << "====================" << endl;;
 
+    cout << "Starting execution of DAG" << endl;
+    cout << "====================" << endl;;
+    int ProcNum = 4;
+    if(argc > 2) {
+        ProcNum = stoi(argv[2]);
+    }
+
+    DagExecutor executor(ProcNum);
+    executor.Execute(d);
+    cout << "====================" << endl;
+    cout << "Dag's execution is done!" << endl;
 }

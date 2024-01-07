@@ -11,45 +11,92 @@ using namespace std;
 using graph = map<int, vector<int> >;
 
 
-enum job_type {
-    LECTURES,
-    TEST,
-    LABS,
-    COURSE_WORK,
-    EXAMS,
-    FINAL_MARK
-};
+// enum job_type {
+//     LECTURES,
+//     TEST,
+//     LABS,
+//     COURSE_WORK,
+//     EXAMS,
+//     FINAL_MARK
+// };
 
 
 struct Job {
-    int job_id;
-    string type;
-    vector<int> dependences;
-    std::string mutexId;
+    string path;
+    int name;
 };
 
 
 
 class JsonParser {
-        graph mapNode, undirectedGraph;
 
     public:
 
-        vector<Job> tasks;
+        map<int, Job> Jobs;
+        map<int, vector<int>> dependences;
+        map<int, vector<int>> revDependences;
+        
+
 
         JsonParser(Json::Value jsonData)
         {
 
-            tasks.resize(jsonData["jobs"].size());
-
-            int i = 0;
+            if(!check_graph(jsonData)) { 
+                throw std::logic_error("Wrong json data");
+            }
 
             for(auto job : jsonData["jobs"]) {
-                if(job["childs"].asInt() != -1) {
-                    mapNode[job["job_id"].asInt()].push_back(job["childs"].asInt());
 
-                    undirectedGraph[job["job_id"].asInt()].push_back(job["childs"].asInt());
-                    undirectedGraph[job["childs"].asInt()].push_back(job["job_id"].asInt());
+                Jobs[job["jobs_id"].asInt()].path = job["path"].asString(); // Filling map of names and paths
+                Jobs[job["jobs_id"].asInt()].name = job["jobs_id"].asInt();
+
+                if(job["parents"][0].asInt() == -1) {
+                    continue;
+                }
+
+                Json::Value json_dep = job["parents"]; // getting array of childs for certain job
+                dependences[job["jobs_id"].asInt()].reserve(json_dep.size());
+                std::transform(all(json_dep), back_inserter(dependences[job["jobs_id"].asInt()]), [](const auto& el) { return el.asInt(); });
+            }
+
+            get_rDep(); // getting reverse dependeces
+
+        }
+
+        void print_graph() {
+            for(const auto& job_id : revDependences) {
+                for(auto element : job_id.second) {
+                    cout << job_id.first << ' ' << element << endl;
+                }
+            }
+        }
+
+
+    private:
+        graph mapNode, undirectedGraph;
+        vector<Json::Value> start_jobs, end_jobs;
+
+        void get_rDep() {
+            for(auto parent : dependences) {
+                for(auto child : parent.second) {
+                    
+                    revDependences[child].push_back(parent.first);
+
+                }
+            }
+        }
+
+
+
+
+        bool check_graph(Json::Value jsonData) {
+            
+            for(auto job : jsonData["jobs"]) {
+                if(job["child"].asInt() != -1) {
+                    mapNode[job["job_id"].asInt()].push_back(job["child"].asInt());
+
+                    undirectedGraph[job["job_id"].asInt()].push_back(job["child"].asInt());
+                    undirectedGraph[job["child"].asInt()].push_back(job["job_id"].asInt());
 
                 } else {
                     end_jobs.push_back(job);
@@ -58,44 +105,8 @@ class JsonParser {
                 if(job["parents"][0] == -1) {
                     start_jobs.push_back(job);
                 }
-
-                Json::Value json_dep = job["parents"];
-                tasks[i].dependences.reserve(json_dep.size());
-
-                std::transform(all(json_dep), back_inserter(tasks[i].dependences), [](const auto& el) { return el.asInt(); });
-
-                tasks[i].job_id = job["job_id"].asInt();
-                tasks[i].type = job["type"].asString();
-                tasks[i].mutexId = "";
-
             }
 
-            // for(auto el : end_jobs) {
-            //     cout << el["job_id"].asInt() << endl;
-            // }
-
-            if(!check_graph()) {
-                throw std::logic_error("Wrong json data");
-            }
-
-        }
-
-        void print_graph() {
-            for(auto lst : mapNode) {
-                cout << lst.first << ' ';
-                for(auto node : lst.second) {
-                    cout << node << ' ' ;
-                }
-
-                cout << endl;
-            }
-        }
-
-    private:
-
-        vector<Json::Value> start_jobs, end_jobs;
-
-        bool check_graph() {
 
             if(start_jobs.size() == 0 or end_jobs.size() == 0) {
                 cout << "There are no start or end jobs" << endl;
