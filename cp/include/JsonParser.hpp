@@ -11,16 +11,6 @@ using namespace std;
 using graph = map<int, vector<int> >;
 
 
-// enum job_type {
-//     LECTURES,
-//     TEST,
-//     LABS,
-//     COURSE_WORK,
-//     EXAMS,
-//     FINAL_MARK
-// };
-
-
 struct Job {
     string path;
     int name;

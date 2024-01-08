@@ -145,15 +145,15 @@ class DagExecutor {
             target = dag.Jobs.size();
             current = 0;
             
-            // execution completed
+            // Nothing to execute
             if(target == 0) { 
                 return true;
             }
 
             // Queue of all proccess
-            set<int> execQueue;
+            set<int> waitQueue;
             for(const auto& p : dag.Jobs) { 
-                execQueue.insert(p.first);
+                waitQueue.insert(p.first);
             }
 
             std::map<int, int> countOfDeps;
@@ -165,7 +165,7 @@ class DagExecutor {
             for(const auto& job : dag.Jobs) {
                 if(dag.dependences[job.first].size() == 0) {
                     rdyToExecution.insert(job.first);
-                    execQueue.erase(job.first); // remove from wait queue;
+                    waitQueue.erase(job.first); // remove from wait queue;
                 }
             }
 
@@ -181,7 +181,6 @@ class DagExecutor {
                     {
                         unique_lock lck(mut);
                         vector<int> executedJobs;
-                        map<int, bool> succeed_exec;
 
                         for(const int& job_id : rdyToExecution) {
 
@@ -203,11 +202,6 @@ class DagExecutor {
                             log.cv.wait(l);
                         }
 
-                        // if(find(log.completed.begin(), log.completed.end(), EXEC_FAILURE) != log.completed.end()) {
-                        //     log.cv.notify_all();
-                        //     exit(-2);
-                        // }
-
                         for(int i = log.wasRead; i < log.completed.size(); ++i) {
                             completedJobs.push_back(log.completed[i]);
                             current++;
@@ -221,7 +215,7 @@ class DagExecutor {
 
                             if(countOfDeps[depend] == 0) {
                                 rdyToExecution.insert(depend);
-                                execQueue.erase(depend);
+                                waitQueue.erase(depend);
                             }
                         }
                     }
