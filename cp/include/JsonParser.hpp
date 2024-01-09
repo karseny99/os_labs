@@ -3,6 +3,7 @@
 #include <json/json.h>
 #include <iostream>
 #include <queue>
+#include <set>
 #include <string>
 
 #define all(x) x.begin(), x.end()
@@ -23,8 +24,8 @@ class JsonParser {
     public:
 
         map<int, Job> Jobs;
-        map<int, vector<int>> dependences;
-        map<int, vector<int>> revDependences;
+        map<int, set<int>> dependences;
+        map<int, set<int>> revDependences;
         
 
 
@@ -45,11 +46,44 @@ class JsonParser {
                 }
 
                 Json::Value json_dep = job["parents"]; // getting array of childs for certain job
-                dependences[job["jobs_id"].asInt()].reserve(json_dep.size());
-                std::transform(all(json_dep), back_inserter(dependences[job["jobs_id"].asInt()]), [](const auto& el) { return el.asInt(); });
+                std::transform(all(json_dep), inserter(dependences[job["jobs_id"].asInt()], dependences[job["jobs_id"].asInt()].begin()), [](const auto& el) { return el.asInt(); });
             }
 
             get_rDep(); // getting reverse dependeces
+
+            vector<set<int>> barriers;
+            if(!jsonData["barrier"].empty()) { // Barriers existed
+                
+                for(auto element : jsonData["barrier"]) {
+
+                    set<int> tmp_barrier;
+                    std::transform(all(element), inserter(tmp_barrier, tmp_barrier.begin()), [](const auto& el) { return el.asInt(); });
+                    barriers.push_back(tmp_barrier);
+
+                }
+
+                // Barrier element's array
+                for(auto Barray : barriers) {
+
+                    // iterate barrier elements
+                    for(int barrierId : Barray) {
+                        
+                        // Insert in every child of barrier element dependence on whole Barray 
+                        for(auto dependent : revDependences[barrierId]) {
+
+                            dependences[dependent].insert(all(Barray));
+
+                        }
+
+                    }
+                }
+
+                // Get new revDependence
+                get_rDep();
+
+
+            }
+
 
         }
 
@@ -70,7 +104,7 @@ class JsonParser {
             for(auto parent : dependences) {
                 for(auto child : parent.second) {
                     
-                    revDependences[child].push_back(parent.first);
+                    revDependences[child].insert(parent.first);
 
                 }
             }
